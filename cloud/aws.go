@@ -2,10 +2,10 @@ package cloud
 
 import (
 	"context"
+	vmconfig "github.com/Abubakarr99/multi-cloud-compute/vm"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
-	vmconfig "multi-cloud-compute/vm"
 )
 
 type AWSClient struct {

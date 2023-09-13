@@ -3,10 +3,10 @@ package multi_cloud_compute
 import (
 	"context"
 	"fmt"
+	"github.com/Abubakarr99/multi-cloud-compute/cloud"
+	vmconfig "github.com/Abubakarr99/multi-cloud-compute/vm"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"multi-cloud-compute/cloud"
-	vmconfig "multi-cloud-compute/vm"
 )
 
 type CloudProvider interface {

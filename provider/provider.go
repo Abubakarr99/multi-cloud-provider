@@ -3,9 +3,9 @@ package multi_cloud_compute
 import (
 	"context"
 	"fmt"
+	"github.com/Abubakarr99/multi-cloud-compute/cloud"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"multi-cloud-compute/cloud"
 )
 
 func Provider() *schema.Provider {

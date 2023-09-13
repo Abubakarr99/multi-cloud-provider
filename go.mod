@@ -1,4 +1,4 @@
-module multi-cloud-compute
+module github.com/Abubakarr99/multi-cloud-compute
 
 go 1.21
 

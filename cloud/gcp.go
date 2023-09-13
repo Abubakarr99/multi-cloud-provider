@@ -3,11 +3,11 @@ package cloud
 import (
 	"context"
 	"fmt"
+	vmconfig "github.com/Abubakarr99/multi-cloud-compute/vm"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
 	"io/ioutil"
-	vmconfig "multi-cloud-compute/vm"
 )
 
 type GCPClient struct {
