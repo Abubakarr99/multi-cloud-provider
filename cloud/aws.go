@@ -5,19 +5,19 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
-	multi_cloud_compute "multi-cloud-compute/provider"
+	vmconfig "multi-cloud-compute/vm"
 )
 
 type AWSClient struct {
 	client *session.Session
 }
 
-func (A *AWSProvider) CreateInstance(ctx context.Context, VM *multi_cloud_compute.VMConfig) (string, error) {
+func (A *AWSProvider) CreateInstance(ctx context.Context, VM *vmconfig.VMConfig) (string, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (A *AWSProvider) DeleteInstance(ctx context.Context, VM *multi_cloud_compute.VMConfig) error {
+func (A *AWSProvider) DeleteInstance(ctx context.Context, VM *vmconfig.VMConfig) error {
 	panic("toto")
 }
 

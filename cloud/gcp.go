@@ -7,7 +7,7 @@ import (
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
 	"io/ioutil"
-	multi_cloud_compute "multi-cloud-compute/provider"
+	vmconfig "multi-cloud-compute/vm"
 )
 
 type GCPClient struct {
@@ -16,12 +16,12 @@ type GCPClient struct {
 
 type GCProvider struct{}
 
-func (G *GCProvider) DeleteInstance(ctx context.Context, VM *multi_cloud_compute.VMConfig) error {
+func (G *GCProvider) DeleteInstance(ctx context.Context, VM *vmconfig.VMConfig) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (G *GCProvider) CreateInstance(ctx context.Context, VM *multi_cloud_compute.VMConfig) (string, error) {
+func (G *GCProvider) CreateInstance(ctx context.Context, VM *vmconfig.VMConfig) (string, error) {
 	gcpClient, err := G.CreateClient(VM.CredentialPath)
 	if err != nil {
 		return "", nil

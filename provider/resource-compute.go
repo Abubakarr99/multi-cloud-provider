@@ -6,28 +6,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"multi-cloud-compute/cloud"
+	vmconfig "multi-cloud-compute/vm"
 )
 
-type VMConfig struct {
-	Name            string
-	Region          string
-	InstanceType    string
-	KeyPairName     string
-	SubnetID        string // Optional for AWS
-	CloudProvider   string
-	CredentialPath  string
-	AWSAMI          string // Optional for AWS
-	GCPImageFamily  string // Optional for GCP
-	GCPImageProject string // Optional for GCP
-	GCPNetworkName  string // Optional for GCP
-	GCPProjectID    string // Optional fot GCP
-}
-
 type CloudProvider interface {
-	CreateInstance(ctx context.Context, VM *VMConfig) (string, error)
+	CreateInstance(ctx context.Context, VM *vmconfig.VMConfig) (string, error)
 	ProviderName() string
 	CreateClient(credential string) (interface{}, error)
-	DeleteInstance(ctx context.Context, VM *VMConfig) error
+	DeleteInstance(ctx context.Context, VM *vmconfig.VMConfig) error
 }
 
 func resourceMultiCloudCompute() *schema.Resource {
@@ -45,11 +31,11 @@ func DeleteInstance(ctx context.Context, data *schema.ResourceData, i interface{
 	var diags diag.Diagnostics
 	providerName := data.Get("cloud_provider").(string)
 	var provider CloudProvider
-	var vm *VMConfig
+	var vm *vmconfig.VMConfig
 	switch providerName {
 	case "aws":
 		provider = &cloud.AWSProvider{}
-		vm = &VMConfig{
+		vm = &vmconfig.VMConfig{
 			Name:           data.Get("name").(string),
 			Region:         data.Get("region").(string),
 			InstanceType:   data.Get("instance_type").(string),
@@ -59,7 +45,7 @@ func DeleteInstance(ctx context.Context, data *schema.ResourceData, i interface{
 		}
 	case "gcp":
 		provider = &cloud.GCProvider{}
-		vm = &VMConfig{
+		vm = &vmconfig.VMConfig{
 			Name:            data.Get("name").(string),
 			Region:          data.Get("region").(string),
 			InstanceType:    data.Get("instance_type").(string),
@@ -86,11 +72,11 @@ func CreateInstance(ctx context.Context, data *schema.ResourceData, m interface{
 	providerName := data.Get("cloud_provider").(string)
 	var provider CloudProvider
 	var diags diag.Diagnostics
-	var vm *VMConfig
+	var vm *vmconfig.VMConfig
 	switch providerName {
 	case "aws":
 		provider = &cloud.AWSProvider{}
-		vm = &VMConfig{
+		vm = &vmconfig.VMConfig{
 			Name:           data.Get("name").(string),
 			Region:         data.Get("region").(string),
 			InstanceType:   data.Get("instance_type").(string),
@@ -100,7 +86,7 @@ func CreateInstance(ctx context.Context, data *schema.ResourceData, m interface{
 		}
 	case "gcp":
 		provider = &cloud.GCProvider{}
-		vm = &VMConfig{
+		vm = &vmconfig.VMConfig{
 			Name:            data.Get("name").(string),
 			Region:          data.Get("region").(string),
 			InstanceType:    data.Get("instance_type").(string),
