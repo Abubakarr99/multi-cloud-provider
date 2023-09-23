@@ -1,8 +1,8 @@
-HOSTNAME=example.com
+HOSTNAME=dantata.com
 NAMESPACE=cloud
-NAME=multiCloud
+NAME=cloudfusion
 BINARY=terraform-provider-${NAME}
-VERSION=0.1.0
+VERSION=1.0.0
 GOARCH  := $(shell go env GOARCH)
 GOOS := $(shell go env GOOS)
 
