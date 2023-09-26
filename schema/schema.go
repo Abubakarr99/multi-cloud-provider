@@ -1,8 +1,8 @@
-package multi_cloud_compute
+package schema
 
 import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-func getVMResourceSchema() map[string]*schema.Schema {
+func GetVMResourceSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,

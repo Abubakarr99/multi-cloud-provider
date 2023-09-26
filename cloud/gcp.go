@@ -19,12 +19,15 @@ import (
 type GCPClient struct {
 	client *compute.Service
 }
+type GCPInstance struct {
+	Instance *compute.Instance
+}
 
 type GCProvider struct{}
 
 func (G *GCProvider) DeleteInstance(ctx context.Context, VM *vmconfig.VMConfig, client interface{}) error {
 	computeService := client.(*GCPClient).client
-	op, err := computeService.Instances.Delete(VM.GCPProjectID, VM.Region, VM.ID).Context(ctx).Do()
+	op, err := computeService.Instances.Delete(VM.GCPProjectID, VM.Region, VM.Name).Context(ctx).Do()
 	if err != nil {
 		return fmt.Errorf("error deleting instance %s", err.Error())
 	}
@@ -44,13 +47,11 @@ func (G *GCProvider) VMtoMap(VM *vmconfig.VMConfig) map[string]interface{} {
 	}
 }
 
-func (G *GCProvider) UpdateInstance(ctx context.Context, VM *vmconfig.VMConfig, client interface{}) error {
+func (G *GCProvider) UpdateInstance(ctx context.Context, new interface{}, old interface{}, client interface{}, vmConfig *vmconfig.VMConfig) error {
 	computeService := client.(*GCPClient).client
-	instance := &compute.Instance{
-		Name:        VM.Name,
-		MachineType: fmt.Sprintf("projects/%s/zones/%s/machineTypes/%s", VM.GCPProjectID, VM.Region, VM.InstanceType),
-	}
-	_, err := computeService.Instances.Update(VM.GCPProjectID, VM.Region, VM.Name, instance).Context(ctx).Do()
+	newInstance := new.(*GCPInstance).Instance
+	oldInstance := old.(*GCPInstance).Instance
+	_, err := computeService.Instances.Update(vmConfig.GCPProjectID, vmConfig.Region, oldInstance.Name, newInstance).Context(ctx).Do()
 	if err != nil {
 		return err
 	}
@@ -90,28 +91,33 @@ func (G *GCProvider) CreateInstance(ctx context.Context, VM *vmconfig.VMConfig, 
 	if err != nil {
 		return "", err
 	}
-	return VM.Name, nil
+	createInstance, err := computeService.Instances.Get(VM.GCPProjectID, VM.Region, VM.Name).Context(ctx).Do()
+	if err != nil {
+		return "", err
+	}
+	instanceID := strconv.FormatUint(createInstance.Id, 10)
+	return instanceID, nil
 }
 
 func (G *GCProvider) ProviderName() string {
 	return "gcp"
 }
 
-func (G *GCProvider) GetInstance(ctx context.Context, VM *vmconfig.VMConfig, client interface{}) error {
+func (G *GCProvider) GetInstance(ctx context.Context, data *schema.ResourceData, client interface{}) (interface{}, error) {
 	computeService := client.(*GCPClient).client
-	project := VM.GCPProjectID
-	region := VM.Region
-	instance, err := computeService.Instances.Get(project, region, VM.Name).Context(ctx).Do()
+	project := data.Get("gcp_project").(string)
+	region := data.Get("region").(string)
+	name := data.Get("name").(string)
+	instance, err := computeService.Instances.Get(project, region, data.Id()).Context(ctx).Do()
 	if err != nil {
 		var gceErr *googleapi.Error
 		if errors.As(err, &gceErr) && gceErr.Code == 404 {
-			fmt.Printf("instance not found: %s", VM.Name)
-			return nil
+			fmt.Printf("instance not found: %s", name)
+			return nil, nil
 		}
-		return err
+		return nil, err
 	}
-	VM.ID = strconv.FormatUint(instance.Id, 10)
-	return nil
+	return &GCPInstance{Instance: instance}, nil
 }
 
 func (G *GCProvider) SetDataFromVM(VM *vmconfig.VMConfig, data *schema.ResourceData) diag.Diagnostics {
@@ -166,5 +172,27 @@ func (G *GCProvider) waitForOperation(ctx context.Context, client interface{}, p
 			// Adjust the sleep duration as needed
 			<-time.After(5 * time.Second)
 		}
+	}
+}
+
+func (G *GCProvider) NewInstance(instance interface{}, data *schema.ResourceData) (interface{}, error) {
+	newInstance, ok := instance.(*GCPInstance)
+	if !ok {
+		return nil, fmt.Errorf("expected GCPInstance got %T", instance)
+	}
+	project := data.Get("gcp_project").(string)
+	zone := data.Get("region").(string)
+	machineType := data.Get("instance_type").(string)
+	newInstance.Instance.MachineType = fmt.Sprintf("projects/%s/zones/%s/machineTypes/%s", project, zone, machineType)
+	return newInstance, nil
+}
+
+func (G *GCProvider) GetInstanceConfig(instance interface{}, data *schema.ResourceData) *vmconfig.VMConfig {
+	newInstance := instance.(*GCPInstance).Instance
+	return &vmconfig.VMConfig{
+		Name:         newInstance.Name,
+		InstanceType: newInstance.MachineType,
+		GCPProjectID: data.Get("gcp_project").(string),
+		Region:       data.Get("region").(string),
 	}
 }

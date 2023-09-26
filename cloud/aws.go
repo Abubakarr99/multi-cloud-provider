@@ -56,32 +56,29 @@ func (A *AWSProvider) DeleteInstance(ctx context.Context, VM *vmconfig.VMConfig,
 	return nil
 }
 
-func (A *AWSProvider) GetInstance(ctx context.Context, VM *vmconfig.VMConfig, client interface{}) error {
+func (A *AWSProvider) GetInstance(ctx context.Context, data *schema.ResourceData, client interface{}) (interface{}, error) {
 	awsClient, ok := client.(*AWSClient)
 	if !ok {
-		return fmt.Errorf("invalid aws client")
+		return nil, fmt.Errorf("invalid aws client")
 	}
 	ec2Svc := ec2.New(awsClient.client)
 	describeInput := &ec2.DescribeInstancesInput{
-		InstanceIds: []*string{aws.String(VM.ID)},
+		InstanceIds: []*string{aws.String(data.Id())},
 	}
 	// Describe the instance
 	result, err := ec2Svc.DescribeInstancesWithContext(ctx, describeInput)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Check if any instances were found
 	if len(result.Reservations) == 0 || len(result.Reservations[0].Instances) == 0 {
-		return fmt.Errorf("instance not found")
+		return nil, fmt.Errorf("instance not found")
 	}
 
 	// Extract instance details
 	awsInstance := result.Reservations[0].Instances[0]
-	VM.ID = *awsInstance.InstanceId
-	VM.InstanceType = *awsInstance.InstanceType
-	VM.SubnetID = *awsInstance.SubnetId
-	return nil
+	return awsInstance, nil
 }
 
 type AWSProvider struct {
@@ -98,7 +95,7 @@ func (A *AWSProvider) VMtoMap(VM *vmconfig.VMConfig) map[string]interface{} {
 	}
 }
 
-func (A *AWSProvider) UpdateInstance(ctx context.Context, VM *vmconfig.VMConfig, client interface{}) error {
+func (A *AWSProvider) UpdateInstance(ctx context.Context, new interface{}, old interface{}, client interface{}, vmConfig *vmconfig.VMConfig) error {
 	//TODO implement me
 	panic("implement me")
 }
@@ -121,4 +118,12 @@ func (A *AWSProvider) CreateClient(credential string) (interface{}, error) {
 		client: sess,
 	}
 	return awsClient, nil
+}
+
+func (G *AWSProvider) NewInstance(instance interface{}, data *schema.ResourceData) (interface{}, error) {
+	return instance.(*AWSProvider), nil
+}
+
+func (G *AWSProvider) GetInstanceConfig(instance interface{}, data *schema.ResourceData) *vmconfig.VMConfig {
+	return nil
 }

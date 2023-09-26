@@ -11,6 +11,7 @@ import (
 type ProviderConfig struct {
 	Provider CloudProvider
 	Client   interface{}
+	Instance interface{}
 }
 
 func Provider() *schema.Provider {
